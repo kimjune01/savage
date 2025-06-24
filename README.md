@@ -26,34 +26,30 @@ Based on the feature specifications in `features.md`, this application provides:
 
 ## Architecture
 
-The application consists of three main services:
+The application consists of two main services:
 
 ### Frontend (React + TypeScript + Vite)
 
-- **Port**: 5173
+- **Directory**: `/frontend`
+- **Port**: 5173 (or 5174 if 5173 is busy)
 - **Tech Stack**: React 19, TypeScript, Tailwind CSS, Vite
 - **Features**: Component-based UI, routing, state management
+- **Start Command**: `cd frontend && pnpm dev`
 
-### API Server (Node.js + Express)
+### Backend (Node.js + Express API)
 
+- **Directory**: `/backend`
 - **Port**: 8000
-- **Tech Stack**: Express, TypeScript, OpenAI API integration
-- **Features**: SVG generation, icon set creation, file upload handling
-
-### Backend (Python + FastAPI)
-
-- **Port**: 8001
-- **Tech Stack**: FastAPI, Python 3.12+, SVG processing libraries
-- **Features**: SVG analysis, optimization, validation, format conversion
+- **Tech Stack**: Express, TypeScript, mock API endpoints
+- **Features**: SVG generation API, icon set creation, file upload handling
+- **Start Command**: `cd backend && pnpm dev`
 
 ## Development
 
 ### Prerequisites
 
 - Node.js 20+
-- Python 3.12+
 - pnpm (package manager)
-- uv (Python package manager)
 
 ### Quick Start
 
@@ -62,31 +58,40 @@ The application consists of three main services:
    ```bash
    git clone <repository-url>
    cd savage
-   make setup
+   pnpm install:all
    ```
 
-2. **Configure environment variables**:
+2. **Start development servers**:
+
+   **Option A: All services at once (recommended)**
 
    ```bash
-   # Edit api/.env
-   OPENAI_API_KEY=your_openai_api_key_here
-
-   # Edit backend/.env (if needed)
-   PORT=8001
+   pnpm dev
    ```
 
-3. **Start development servers**:
+   **Option B: Individual services**
+
+   In separate terminal windows:
 
    ```bash
-   make dev
+   # Terminal 1: Frontend (React + Vite)
+   cd frontend && pnpm dev
+   # Serves on http://localhost:5173 (or 5174 if 5173 is busy)
+
+   # Terminal 2: Backend API (Node.js + Express)
+   cd backend && pnpm dev
+   # Serves on http://localhost:8000
    ```
 
-   Or start services individually:
+3. **Open the application**:
 
    ```bash
-   make dev-frontend  # Port 5173
-   make dev-api      # Port 8000
-   make dev-backend  # Port 8001
+   # Automatically open in browser
+   open http://localhost:5173
+
+   # Or manually navigate to:
+   # - Frontend: http://localhost:5173
+   # - Backend API Health: http://localhost:8000/health
    ```
 
 ### Available Commands
@@ -94,62 +99,72 @@ The application consists of three main services:
 Run `make help` to see all available commands:
 
 ```bash
-make install      # Install all dependencies
-make dev         # Start all development servers
-make build       # Build all services
-make test        # Run all tests
-make lint        # Run linting
-make typecheck   # Run type checking
-make clean       # Clean build artifacts
+pnpm install:all      # Install all dependencies
+pnpm dev             # Start all development servers
+pnpm build           # Build all services
+pnpm test            # Run all tests
+pnpm lint            # Run linting
+pnpm typecheck       # Run type checking
+pnpm clean           # Clean build artifacts
 ```
 
 ### Docker Development
 
-```bash
-make docker-dev    # Start with Docker Compose
-make docker-down   # Stop Docker environment
-make docker-logs   # View logs
-```
+Docker configuration is planned for future releases.
 
 ## Testing
 
 ### Unit Tests
 
 ```bash
-make test-frontend  # React component tests
-make test-api      # API endpoint tests
-make test-backend  # Python service tests
+pnpm test:frontend  # React component tests (Vitest)
+pnpm test:backend   # Backend API tests (Jest)
+pnpm test          # Run all tests
 ```
 
 ### End-to-End Tests
 
 ```bash
-make test-e2e     # Playwright E2E tests
+pnpm test:e2e     # Playwright E2E tests
 ```
 
 ### Manual Testing
 
-1. Start all services: `make dev`
-2. Open http://localhost:5173
-3. Test SVG generation with text prompts
-4. Test icon set generation with reference images
-5. Test SVG analysis and optimization features
+1. Start all services: `pnpm dev` or follow individual service instructions above
+2. Open http://localhost:5173 (or the port shown in your terminal)
+3. Test the application features:
+   - **SVG Generation**: Enter text prompts, upload reference images
+   - **Icon Set Generation**: Create cohesive icon sets with custom styling
+   - **SVG Analysis**: Upload SVG files for analysis and optimization
+
+### Troubleshooting
+
+**Port conflicts**: If ports 5173, 8000, or 8001 are already in use, the servers will automatically try alternative ports. Check the terminal output for the actual URLs.
+
+**API not responding**: If the API server has issues, the frontend will still work with mock data for development.
+
+**Missing dependencies**: Run `pnpm install:all` in the root directory to install dependencies for all services.
 
 ## Project Structure
 
 ```
 savage/
-├── src/                    # Frontend React application
-│   ├── components/         # Reusable UI components
-│   ├── pages/             # Page components
-│   └── services/          # API client services
-├── api/                   # Node.js API server
-│   └── src/              # TypeScript source code
-├── backend/              # Python FastAPI backend
-│   ├── services/         # Business logic services
-│   └── utils/           # Utility functions
-├── e2e/                 # End-to-end tests
-└── .github/             # CI/CD workflows
+├── frontend/              # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/        # Page components
+│   │   └── services/     # API client services
+│   ├── public/           # Static assets
+│   └── package.json      # Frontend dependencies
+├── backend/              # Node.js Express API
+│   ├── src/
+│   │   ├── routes/       # API routes
+│   │   ├── services/     # Business logic
+│   │   └── utils/        # Utility functions
+│   └── package.json      # Backend dependencies
+├── e2e/                  # End-to-end tests
+├── package.json          # Root monorepo scripts
+└── .github/              # CI/CD workflows
 ```
 
 ## Deployment
@@ -157,25 +172,23 @@ savage/
 ### Production Build
 
 ```bash
-make build        # Build all services
+pnpm build        # Build all services
 ```
 
 ### Environment Variables
 
 See `.env.example` files in each service directory for required configuration.
 
-### Docker Production
+### Production Deployment
 
-```bash
-docker-compose up --build
-```
+Production deployment configuration is planned for future releases.
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Run tests: `make test`
+4. Run tests: `pnpm test`
 5. Submit a pull request
 
 ## License
