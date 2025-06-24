@@ -1,70 +1,63 @@
-import { useState, useEffect } from 'react';
-import { X, FileImage } from 'lucide-react';
+'use client'
+
+import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 
 interface ImagePreviewProps {
-  file: File;
-  onRemove: () => void;
+  file: File
+  onRemove: () => void
 }
 
 export default function ImagePreview({ file, onRemove }: ImagePreviewProps) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('')
 
   useEffect(() => {
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
 
     return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [file]);
+      URL.revokeObjectURL(url)
+    }
+  }, [file])
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+  }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-      <div className="flex items-start space-x-4">
-        {/* Image Thumbnail */}
-        <div className="flex-shrink-0">
-          {previewUrl ? (
+    <div className="relative group">
+      <div className="border rounded-lg p-4 bg-white shadow-sm">
+        <div className="flex items-center space-x-3">
+          {previewUrl && (
             <img
               src={previewUrl}
-              alt="Preview"
-              className="h-16 w-16 object-cover rounded border border-gray-200 dark:border-gray-600"
+              alt={file.name}
+              className="w-12 h-12 object-cover rounded"
             />
-          ) : (
-            <div className="h-16 w-16 bg-gray-200 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 flex items-center justify-center">
-              <FileImage className="h-6 w-6 text-gray-400" />
-            </div>
           )}
-        </div>
-
-        {/* File Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {file.name}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {formatFileSize(file.size)} • {file.type}
-              </p>
-            </div>
-            <button
-              onClick={onRemove}
-              className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
-              title="Remove image"
-            >
-              <X className="h-4 w-4" />
-            </button>
+          
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {file.name}
+            </p>
+            <p className="text-xs text-gray-500">
+              {formatFileSize(file.size)} • {file.type}
+            </p>
           </div>
+
+          <button
+            onClick={onRemove}
+            title="Remove image"
+            className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
         </div>
       </div>
     </div>
-  );
+  )
 }

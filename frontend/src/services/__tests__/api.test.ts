@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import axios from 'axios'
-import { generateSVG, analyzeSVG, validateSVG } from '../api'
+import { generateSVG, analyzeSVG, validateSVG, verifyGeneration } from '../api'
 
 // Mock axios
 vi.mock('axios')
@@ -38,6 +38,33 @@ describe('API Service', () => {
       expect(result).toEqual(mockResponse.data)
     })
 
+    it('sends correct request with text prompt and image', async () => {
+      const mockResponse = {
+        data: {
+          success: true,
+          svg: '<svg>test</svg>',
+          metadata: {
+            hasTextPrompt: true,
+            hasImage: true,
+            timestamp: '2023-01-01T00:00:00.000Z'
+          }
+        }
+      }
+
+      mockedAxios.post.mockResolvedValue(mockResponse)
+
+      const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
+      const result = await generateSVG('test prompt', mockFile)
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        '/api/generate/svg',
+        expect.any(FormData),
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      )
+
+      expect(result).toEqual(mockResponse.data)
+    })
+
     it('handles API errors correctly', async () => {
       const errorResponse = {
         isAxiosError: true,
@@ -50,6 +77,13 @@ describe('API Service', () => {
       mockedAxios.post.mockRejectedValue(errorResponse)
 
       await expect(generateSVG('test')).rejects.toThrow('Invalid input')
+    })
+
+    it('handles network errors correctly', async () => {
+      mockedAxios.isAxiosError = vi.fn().mockReturnValue(false)
+      mockedAxios.post.mockRejectedValue(new Error('Network error'))
+
+      await expect(generateSVG('test')).rejects.toThrow('Failed to generate SVG')
     })
   })
 
@@ -71,11 +105,25 @@ describe('API Service', () => {
       const result = await analyzeSVG('<svg>test</svg>')
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        'http://localhost:8001/api/svg/analyze',
+        '/api/svg/analyze',
         { svg_content: '<svg>test</svg>' }
       )
 
       expect(result).toEqual(mockResponse.data)
+    })
+
+    it('handles analysis errors correctly', async () => {
+      const errorResponse = {
+        isAxiosError: true,
+        response: {
+          data: { error: 'Invalid SVG content' }
+        }
+      }
+
+      mockedAxios.isAxiosError = vi.fn().mockReturnValue(true)
+      mockedAxios.post.mockRejectedValue(errorResponse)
+
+      await expect(analyzeSVG('<invalid-svg>')).rejects.toThrow('Invalid SVG content')
     })
   })
 
@@ -95,11 +143,63 @@ describe('API Service', () => {
       const result = await validateSVG('<svg>test</svg>')
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        'http://localhost:8001/api/svg/validate',
+        '/api/svg/validate',
         { svg_content: '<svg>test</svg>' }
       )
 
       expect(result).toEqual(mockResponse.data)
+    })
+
+    it('handles validation errors correctly', async () => {
+      const errorResponse = {
+        isAxiosError: true,
+        response: {
+          data: { error: 'Validation failed' }
+        }
+      }
+
+      mockedAxios.isAxiosError = vi.fn().mockReturnValue(true)
+      mockedAxios.post.mockRejectedValue(errorResponse)
+
+      await expect(validateSVG('<invalid>')).rejects.toThrow('Validation failed')
+    })
+  })
+
+  describe('verifyGeneration', () => {
+    it('sends correct request for image verification', async () => {
+      const mockResponse = {
+        data: {
+          message: 'Image verified successfully'
+        }
+      }
+
+      mockedAxios.post.mockResolvedValue(mockResponse)
+
+      const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
+      const result = await verifyGeneration(mockFile)
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        '/api/verify-generation',
+        expect.any(FormData),
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      )
+
+      expect(result).toEqual(mockResponse.data)
+    })
+
+    it('handles verification errors correctly', async () => {
+      const errorResponse = {
+        isAxiosError: true,
+        response: {
+          data: { error: 'Image verification failed' }
+        }
+      }
+
+      mockedAxios.isAxiosError = vi.fn().mockReturnValue(true)
+      mockedAxios.post.mockRejectedValue(errorResponse)
+
+      const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
+      await expect(verifyGeneration(mockFile)).rejects.toThrow('Image verification failed')
     })
   })
 })

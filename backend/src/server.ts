@@ -1,5 +1,7 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
+import multer from 'multer';
+import { generateSVG } from './services/openai';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -13,27 +15,65 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Mock API endpoints for development
-app.post('/api/generate/svg', (req, res) => {
-  const mockSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-    <circle cx="100" cy="100" r="80" fill="#3B82F6" stroke="#1E40AF" stroke-width="4"/>
-    <text x="100" y="110" text-anchor="middle" fill="white" font-size="16">Demo SVG</text>
-  </svg>`;
-  
-  res.json({
-    success: true,
-    svg: mockSVG,
-    metadata: {
-      hasTextPrompt: !!req.body.textPrompt,
-      hasImage: !!req.body.image,
-      timestamp: new Date().toISOString()
+// OpenAI-powered SVG generation endpoint
+app.post('/api/generate/svg', upload.single('image'), async (req: Request, res: Response) => {
+  try {
+    const { textPrompt } = req.body;
+    const imageFile = req.file;
+
+    // Validate input
+    if (!textPrompt && !imageFile) {
+      res.status(400).json({
+        success: false,
+        error: 'Either textPrompt or image file is required'
+      });
+      return;
     }
-  });
+
+    // Convert image to base64 if provided
+    let imageData: string | undefined;
+    if (imageFile) {
+      imageData = imageFile.buffer.toString('base64');
+    }
+
+    // Generate SVG using OpenAI
+    const svg = await generateSVG(textPrompt || '', imageData);
+
+    res.json({
+      success: true,
+      svg: svg,
+      metadata: {
+        hasTextPrompt: !!textPrompt,
+        hasImage: !!imageFile,
+        imageSize: imageFile ? imageFile.size : 0,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('SVG generation error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate SVG',
+      metadata: {
+        hasTextPrompt: !!req.body.textPrompt,
+        hasImage: !!req.file,
+        imageSize: req.file ? req.file.size : 0,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
 });
 
 app.post('/api/generate/icon-set', (req, res) => {
