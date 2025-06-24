@@ -1,54 +1,183 @@
-# React + TypeScript + Vite
+# Savage
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AI-Powered SVG Generation Platform
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Based on the feature specifications in `features.md`, this application provides:
 
-## Expanding the ESLint configuration
+### Core Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **AI-Powered SVG Generation**: Create scalable vector graphics using text prompts and/or reference images
+- **Icon Set Generation**: Generate cohesive icon sets with consistent styling from a reference icon
+- **File Upload Interface**: Drag-and-drop and click-to-browse file upload with image preview
+- **SVG Preview and Interaction**: Real-time preview with zoom controls and code view toggle
+- **Export Functionality**: Download SVG files and export to PNG, JPEG with customizable options
+- **SVG Analysis**: Analyze SVG complexity, file size, and get optimization suggestions
+- **SVG Optimization**: Optimize SVG files for better performance and smaller file sizes
+- **SVG Validation**: Validate SVG content and check for common issues
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+### Technical Features
+
+- **Responsive Design**: Mobile-friendly interface that works across devices
+- **Error Handling**: Comprehensive error handling with user-friendly messages
+- **Accessibility**: Keyboard navigation and screen reader support
+- **Dark Mode**: Toggle between light and dark themes
+
+## Architecture
+
+The application consists of three main services:
+
+### Frontend (React + TypeScript + Vite)
+
+- **Port**: 5173
+- **Tech Stack**: React 19, TypeScript, Tailwind CSS, Vite
+- **Features**: Component-based UI, routing, state management
+
+### API Server (Node.js + Express)
+
+- **Port**: 8000
+- **Tech Stack**: Express, TypeScript, OpenAI API integration
+- **Features**: SVG generation, icon set creation, file upload handling
+
+### Backend (Python + FastAPI)
+
+- **Port**: 8001
+- **Tech Stack**: FastAPI, Python 3.12+, SVG processing libraries
+- **Features**: SVG analysis, optimization, validation, format conversion
+
+## Development
+
+### Prerequisites
+
+- Node.js 20+
+- Python 3.12+
+- pnpm (package manager)
+- uv (Python package manager)
+
+### Quick Start
+
+1. **Clone and setup**:
+
+   ```bash
+   git clone <repository-url>
+   cd savage
+   make setup
+   ```
+
+2. **Configure environment variables**:
+
+   ```bash
+   # Edit api/.env
+   OPENAI_API_KEY=your_openai_api_key_here
+
+   # Edit backend/.env (if needed)
+   PORT=8001
+   ```
+
+3. **Start development servers**:
+
+   ```bash
+   make dev
+   ```
+
+   Or start services individually:
+
+   ```bash
+   make dev-frontend  # Port 5173
+   make dev-api      # Port 8000
+   make dev-backend  # Port 8001
+   ```
+
+### Available Commands
+
+Run `make help` to see all available commands:
+
+```bash
+make install      # Install all dependencies
+make dev         # Start all development servers
+make build       # Build all services
+make test        # Run all tests
+make lint        # Run linting
+make typecheck   # Run type checking
+make clean       # Clean build artifacts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Docker Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-});
+```bash
+make docker-dev    # Start with Docker Compose
+make docker-down   # Stop Docker environment
+make docker-logs   # View logs
 ```
+
+## Testing
+
+### Unit Tests
+
+```bash
+make test-frontend  # React component tests
+make test-api      # API endpoint tests
+make test-backend  # Python service tests
+```
+
+### End-to-End Tests
+
+```bash
+make test-e2e     # Playwright E2E tests
+```
+
+### Manual Testing
+
+1. Start all services: `make dev`
+2. Open http://localhost:5173
+3. Test SVG generation with text prompts
+4. Test icon set generation with reference images
+5. Test SVG analysis and optimization features
+
+## Project Structure
+
+```
+savage/
+├── src/                    # Frontend React application
+│   ├── components/         # Reusable UI components
+│   ├── pages/             # Page components
+│   └── services/          # API client services
+├── api/                   # Node.js API server
+│   └── src/              # TypeScript source code
+├── backend/              # Python FastAPI backend
+│   ├── services/         # Business logic services
+│   └── utils/           # Utility functions
+├── e2e/                 # End-to-end tests
+└── .github/             # CI/CD workflows
+```
+
+## Deployment
+
+### Production Build
+
+```bash
+make build        # Build all services
+```
+
+### Environment Variables
+
+See `.env.example` files in each service directory for required configuration.
+
+### Docker Production
+
+```bash
+docker-compose up --build
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `make test`
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
